@@ -22,9 +22,7 @@ class WeatherViewController: UIViewController {
     
     var weatherManager = WeatherManager()
     let locationManager = CLLocationManager()
-    
-    var location: CLLocation?
-    
+        
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,11 +32,9 @@ class WeatherViewController: UIViewController {
         locationManager.delegate = self
         
         locationSearchButton.isEnabled = false
-        
         loadingSpinnerView.transform = CGAffineTransform(scaleX: 2, y: 2)
         
         locationManager.requestWhenInUseAuthorization()
-        
         locationManager.requestLocation()
     }
 }
@@ -47,8 +43,11 @@ class WeatherViewController: UIViewController {
 
 extension WeatherViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        location = locations[0]
-        locationSearchButton.isEnabled = true
+        if let location = locations.last {
+            locationManager.stopUpdatingLocation()
+            didStartLoading()
+            weatherManager.fetchWeather(lat: location.coordinate.latitude, long: location.coordinate.longitude)
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -65,10 +64,7 @@ extension WeatherViewController : UITextFieldDelegate {
     }
     
     @IBAction func locationSearchPressed(_ sender: UIButton) {
-        if let safeLocation = location {
-            didStartLoading()
-            weatherManager.fetchWeather(lat: safeLocation.coordinate.latitude, long: safeLocation.coordinate.longitude)
-        }
+        locationManager.requestLocation()
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
